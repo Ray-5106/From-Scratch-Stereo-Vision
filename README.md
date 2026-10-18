@@ -8,6 +8,8 @@ This is the code for the manuscript *From-scratch stereo vision for 3D scene rec
 
 Authors: Rayhan Hameed, Yuvan Shankar, Lohith C (Department of Electronics and Communication Engineering, Chennai Institute of Technology) and Nishanthi Rajkamal (Centre for Biomedical Research and Innovation, Chennai Institute of Technology).
 
+![Pipeline](docs/images/pipeline.png)
+
 | Test set (8 Middlebury scenes) | EPE (px) | bad2 | AbsRel | Normal error | Chamfer |
 |---|---|---|---|---|---|
 | network alone (9,921 parameters) | 2.29 | 30.0% | 6.07% | 44.7° | 3.22% |
@@ -15,6 +17,14 @@ Authors: Rayhan Hameed, Yuvan Shankar, Lohith C (Department of Electronics and C
 | census + SGM alone, told the true disparity range | 0.80 | 6.7% | 2.67% | 29.4° | 1.20% |
 
 The last row is a classical control. It is more accurate per pixel. Our pipeline has lower surface-normal error on all 8 scenes and lower Chamfer error on 7 of 8, and it does not need to be told the disparity range. Per-scene numbers are in `scripts/expected_results.json` and in the paper.
+
+![Error maps on two test scenes](docs/images/error_maps.png)
+
+*Two held-out test scenes. The refinement removes most of the network's error on Teddy. On Art the network is often more than 10 pixels off, beyond the reach of the ±10-pixel band, and those errors remain.*
+
+![Test error of every model that reached the test set](docs/images/progression.png)
+
+*Mean end-point error on the eight test scenes for each configuration that was sent to the test set. Each was chosen on validation first.*
 
 ## What "no imports" means
 
