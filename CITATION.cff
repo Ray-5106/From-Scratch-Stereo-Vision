@@ -4,7 +4,7 @@ title: "Stereo from scratch: a zero-import stereo-to-3D pipeline"
 version: 1.0.0
 date-released: 2026-10-17
 license: MIT
-repository-code: "https://github.com/Ray-5106/stereo-from-scratch"
+repository-code: "https://github.com/Ray-5106/From-Scratch-Stereo-Vision"
 authors:
   - family-names: Hameed
     given-names: Rayhan
