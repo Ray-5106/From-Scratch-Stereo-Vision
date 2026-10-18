@@ -1,0 +1,281 @@
+{
+ "note": "Test split (Middlebury 2005: 6 scenes with ground truth; 2003: cones, teddy). Non-occluded metrics except \"all\". Produced 2026-10-17 by scripts/reproduce_test.py; identical to the 2026-09-22 run.",
+ "configs": {
+  "network": {
+   "Art": {
+    "epe": 4.1066,
+    "bad1": 66.2518,
+    "bad2": 48.8098,
+    "bad4": 29.815,
+    "all": 5.2092,
+    "absrel": 10.0087,
+    "normal": 47.3592,
+    "chamfer": 4.1447
+   },
+   "Books": {
+    "epe": 1.9907,
+    "bad1": 56.2818,
+    "bad2": 30.934,
+    "bad4": 11.5945,
+    "all": 2.8337,
+    "absrel": 4.5765,
+    "normal": 46.2668,
+    "chamfer": 2.8566
+   },
+   "Dolls": {
+    "epe": 1.5889,
+    "bad1": 52.9459,
+    "bad2": 25.9557,
+    "bad4": 8.4303,
+    "all": 2.0619,
+    "absrel": 3.6169,
+    "normal": 40.7728,
+    "chamfer": 2.1614
+   },
+   "Laundry": {
+    "epe": 2.6413,
+    "bad1": 61.4739,
+    "bad2": 36.0689,
+    "bad4": 17.4297,
+    "all": 4.1858,
+    "absrel": 7.258,
+    "normal": 48.2108,
+    "chamfer": 5.3468
+   },
+   "Moebius": {
+    "epe": 2.2862,
+    "bad1": 43.6542,
+    "bad2": 25.8038,
+    "bad4": 14.9344,
+    "all": 2.6203,
+    "absrel": 5.8701,
+    "normal": 44.5392,
+    "chamfer": 2.3014
+   },
+   "Reindeer": {
+    "epe": 3.2956,
+    "bad1": 65.0691,
+    "bad2": 43.9134,
+    "bad4": 25.15,
+    "all": 4.401,
+    "absrel": 8.6045,
+    "normal": 47.3332,
+    "chamfer": 4.1758
+   },
+   "cones": {
+    "epe": 1.2659,
+    "bad1": 36.0549,
+    "bad2": 13.847,
+    "bad4": 4.7307,
+    "all": 1.7236,
+    "absrel": 4.2631,
+    "normal": 40.7085,
+    "chamfer": 2.1475
+   },
+   "teddy": {
+    "epe": 1.1335,
+    "bad1": 31.9306,
+    "bad2": 14.7018,
+    "bad4": 5.6343,
+    "all": 1.5185,
+    "absrel": 4.3486,
+    "normal": 42.3098,
+    "chamfer": 2.61
+   },
+   "MEAN": {
+    "epe": 2.2886,
+    "bad1": 51.7078,
+    "bad2": 30.0043,
+    "bad4": 14.7149,
+    "all": 3.0692,
+    "absrel": 6.0683,
+    "normal": 44.6875,
+    "chamfer": 3.218
+   }
+  },
+  "refined": {
+   "Art": {
+    "epe": 2.5688,
+    "bad1": 19.7115,
+    "bad2": 16.85,
+    "bad4": 14.9339,
+    "all": 3.9032,
+    "absrel": 6.3721,
+    "normal": 26.2606,
+    "chamfer": 1.2921
+   },
+   "Books": {
+    "epe": 0.7495,
+    "bad1": 12.1622,
+    "bad2": 6.5461,
+    "bad4": 3.6665,
+    "all": 1.7209,
+    "absrel": 1.6997,
+    "normal": 23.5533,
+    "chamfer": 0.9239
+   },
+   "Dolls": {
+    "epe": 0.4558,
+    "bad1": 7.1625,
+    "bad2": 3.5273,
+    "bad4": 1.6535,
+    "all": 0.9099,
+    "absrel": 1.062,
+    "normal": 22.0644,
+    "chamfer": 0.6752
+   },
+   "Laundry": {
+    "epe": 1.4527,
+    "bad1": 19.8378,
+    "bad2": 13.5336,
+    "bad4": 9.4031,
+    "all": 2.9156,
+    "absrel": 4.0437,
+    "normal": 28.0835,
+    "chamfer": 2.0219
+   },
+   "Moebius": {
+    "epe": 1.3032,
+    "bad1": 14.648,
+    "bad2": 11.107,
+    "bad4": 8.3895,
+    "all": 1.6774,
+    "absrel": 3.3114,
+    "normal": 26.0203,
+    "chamfer": 0.8356
+   },
+   "Reindeer": {
+    "epe": 1.5194,
+    "bad1": 13.3299,
+    "bad2": 11.5591,
+    "bad4": 10.238,
+    "all": 2.6556,
+    "absrel": 3.661,
+    "normal": 21.2711,
+    "chamfer": 1.0839
+   },
+   "cones": {
+    "epe": 0.5461,
+    "bad1": 5.8353,
+    "bad2": 4.3905,
+    "bad4": 3.007,
+    "all": 1.0086,
+    "absrel": 1.7753,
+    "normal": 19.846,
+    "chamfer": 0.6433
+   },
+   "teddy": {
+    "epe": 0.524,
+    "bad1": 8.2828,
+    "bad2": 5.2576,
+    "bad4": 3.0293,
+    "all": 1.0152,
+    "absrel": 1.8533,
+    "normal": 24.2238,
+    "chamfer": 0.9385
+   },
+   "MEAN": {
+    "epe": 1.1399,
+    "bad1": 12.6212,
+    "bad2": 9.0964,
+    "bad4": 6.7901,
+    "all": 1.9758,
+    "absrel": 2.9723,
+    "normal": 23.9154,
+    "chamfer": 1.0518
+   }
+  },
+  "sgm_control": {
+   "Art": {
+    "epe": 1.5762,
+    "bad1": 12.9062,
+    "bad2": 10.0317,
+    "bad4": 8.1431,
+    "all": 6.5437,
+    "absrel": 4.6117,
+    "normal": 28.4003,
+    "chamfer": 1.5063
+   },
+   "Books": {
+    "epe": 0.6529,
+    "bad1": 12.5874,
+    "bad2": 5.9698,
+    "bad4": 2.5775,
+    "all": 3.2408,
+    "absrel": 1.802,
+    "normal": 30.7641,
+    "chamfer": 1.1856
+   },
+   "Dolls": {
+    "epe": 0.4763,
+    "bad1": 7.3235,
+    "bad2": 3.8453,
+    "bad4": 1.7736,
+    "all": 3.716,
+    "absrel": 1.4371,
+    "normal": 24.1962,
+    "chamfer": 0.879
+   },
+   "Laundry": {
+    "epe": 0.9807,
+    "bad1": 17.3689,
+    "bad2": 10.6962,
+    "bad4": 6.2302,
+    "all": 5.1352,
+    "absrel": 3.1865,
+    "normal": 34.3568,
+    "chamfer": 2.0842
+   },
+   "Moebius": {
+    "epe": 0.7752,
+    "bad1": 12.2386,
+    "bad2": 8.5026,
+    "bad4": 5.4939,
+    "all": 3.2852,
+    "absrel": 3.3011,
+    "normal": 31.4411,
+    "chamfer": 1.2274
+   },
+   "Reindeer": {
+    "epe": 0.813,
+    "bad1": 6.9477,
+    "bad2": 5.0213,
+    "bad4": 3.8462,
+    "all": 4.6814,
+    "absrel": 2.4314,
+    "normal": 24.3423,
+    "chamfer": 0.8695
+   },
+   "cones": {
+    "epe": 0.5223,
+    "bad1": 5.3052,
+    "bad2": 3.7902,
+    "bad4": 2.3601,
+    "all": 2.8132,
+    "absrel": 2.1506,
+    "normal": 27.0847,
+    "chamfer": 0.8245
+   },
+   "teddy": {
+    "epe": 0.5867,
+    "bad1": 8.426,
+    "bad2": 5.4993,
+    "bad4": 3.1657,
+    "all": 2.4939,
+    "absrel": 2.4629,
+    "normal": 34.7494,
+    "chamfer": 1.0205
+   },
+   "MEAN": {
+    "epe": 0.7979,
+    "bad1": 10.3879,
+    "bad2": 6.6696,
+    "bad4": 4.1988,
+    "all": 3.9887,
+    "absrel": 2.6729,
+    "normal": 29.4169,
+    "chamfer": 1.1996
+   }
+  }
+ }
+}

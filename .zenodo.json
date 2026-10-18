@@ -1,0 +1,13 @@
+{
+  "title": "Stereo from scratch: a zero-import stereo-to-3D pipeline",
+  "upload_type": "software",
+  "description": "Code, trained weights and evaluation scripts for the manuscript 'From-scratch stereo vision for 3D scene reconstruction with Delaunay triangulation and closed-form Gaussian primitives'. The model and its tests are plain Python with no import statements.",
+  "creators": [
+    {"name": "Hameed, Rayhan", "affiliation": "Chennai Institute of Technology"},
+    {"name": "Shankar, Yuvan", "affiliation": "Chennai Institute of Technology"},
+    {"name": "C, Lohith", "affiliation": "Chennai Institute of Technology"},
+    {"name": "Rajkamal, Nishanthi", "affiliation": "Chennai Institute of Technology"}
+  ],
+  "license": "MIT",
+  "keywords": ["stereo matching", "3D reconstruction", "semi-global matching", "Delaunay triangulation", "Gaussian splatting"]
+}

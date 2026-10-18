@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Stereo from scratch: a zero-import stereo-to-3D pipeline"
+version: 1.0.0
+date-released: 2026-10-17
+license: MIT
+repository-code: "https://github.com/Ray-5106/stereo-from-scratch"
+authors:
+  - family-names: Hameed
+    given-names: Rayhan
+    affiliation: "Department of Electronics and Communication Engineering (Advanced Communication Technology), Chennai Institute of Technology"
+    email: rayhanhameed5@gmail.com
+  - family-names: Shankar
+    given-names: Yuvan
+    affiliation: "Department of Electronics and Communication Engineering (Advanced Communication Technology), Chennai Institute of Technology"
+  - family-names: C
+    given-names: Lohith
+    affiliation: "Department of Electronics and Communication Engineering (Advanced Communication Technology), Chennai Institute of Technology"
+  - family-names: Rajkamal
+    given-names: Nishanthi
+    affiliation: "Centre for Biomedical Research and Innovation, Chennai Institute of Technology"
+    email: nishanthir.bme@citchennai.net
+keywords:
+  - stereo matching
+  - 3D reconstruction
+  - semi-global matching
+  - Delaunay triangulation
+  - Gaussian splatting

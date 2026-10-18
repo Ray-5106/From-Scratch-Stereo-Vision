@@ -1,0 +1,5 @@
+# Only the harness scripts need these. stereonet.py and test_stereonet.py need nothing.
+numpy      # eval3d.py, prep_real.py, prep_middeval.py, web/build_web.py
+scipy      # eval3d.py (Chamfer distance)
+pillow     # prep_middeval.py, web/build_web.py
+# Node.js >= 18 for web/verify.js, web/verify_refine.js, web/precompute.js

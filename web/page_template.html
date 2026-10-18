@@ -1,0 +1,557 @@
+<title>StereoNet From Scratch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --ground:#ECEFF2; --panel:#FFFFFF; --ink:#131920; --muted:#586371;
+  --line:#D2D8DF; --soft:#E3E8ED; --stage:#0B0E12;
+  --left:#C23C2A; --right:#127C8B; --good:#2F7D4F; --warn:#9A6A10;
+  --focus:#127C8B;
+  --display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0D1014; --panel:#151A20; --ink:#E4E8EC; --muted:#95A0AD;
+  --line:#262D36; --soft:#1C2229; --stage:#07090C;
+  --left:#E26450; --right:#3DB4C4; --good:#5DBB84; --warn:#E0A640; --focus:#3DB4C4;
+}}
+:root[data-theme="dark"]{
+  --ground:#0D1014; --panel:#151A20; --ink:#E4E8EC; --muted:#95A0AD;
+  --line:#262D36; --soft:#1C2229; --stage:#07090C;
+  --left:#E26450; --right:#3DB4C4; --good:#5DBB84; --warn:#E0A640; --focus:#3DB4C4;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font:15px/1.55 var(--body);margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:28px 40px}
+h1,h2,h3{font-family:var(--display);font-stretch:82%;letter-spacing:-.01em;margin:0;text-wrap:balance}
+h1{font-size:clamp(30px,5vw,46px);font-weight:760;line-height:1.02}
+h2{font-size:19px;font-weight:700}
+.thesis{max-width:64ch;color:var(--muted);margin:10px 0 18px;font-size:16px}
+.facts{display:flex;flex-wrap:wrap;gap:8px 22px;font-family:var(--mono);font-size:13px;color:var(--muted);
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding-block:10px;margin-bottom:22px}
+.facts b{color:var(--ink);font-weight:500}
+.lab{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lab{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+.label{font-family:var(--mono);font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.samples{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 14px}
+.chip{font:500 13px var(--body);background:var(--soft);color:var(--ink);border:1px solid var(--line);
+  border-radius:999px;padding:5px 12px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.slot{display:flex;flex-direction:column;gap:6px}
+.slot .tag{font:600 12px var(--mono);letter-spacing:.06em}
+.slot.l .tag{color:var(--left)} .slot.r .tag{color:var(--right)}
+.slot canvas{width:100%;height:auto;aspect-ratio:4/3;object-fit:contain;background:var(--soft);border-radius:6px;
+  border-top:3px solid var(--line);display:block}
+.slot.l canvas{border-top-color:var(--left)} .slot.r canvas{border-top-color:var(--right)}
+.pick{font:500 12.5px var(--body);color:var(--ink);background:transparent;border:1px dashed var(--line);
+  border-radius:6px;padding:6px;cursor:pointer;text-align:center}
+.pick input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.go{margin-top:14px;width:100%;font:600 15px var(--body);background:var(--ink);color:var(--panel);
+  border:0;border-radius:8px;padding:11px;cursor:pointer}
+.go:disabled{opacity:.55;cursor:progress}
+.note{font-size:13px;color:var(--muted);margin-top:10px}
+#log{font:12.5px/1.6 var(--mono);color:var(--muted);background:var(--soft);border-radius:6px;padding:9px 10px;
+  margin-top:12px;min-height:60px;max-height:150px;overflow:auto;white-space:pre-wrap}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:-4px 0 12px;flex-wrap:wrap}
+.tab{font:600 13.5px var(--body);background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);
+  padding:7px 10px;cursor:pointer}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+.view{position:relative}
+#stage{width:100%;height:clamp(300px,58vh,560px);display:block;background:var(--stage);border-radius:8px;
+  cursor:grab;touch-action:none}
+#stage:active{cursor:grabbing}
+.flat{width:100%;height:auto;max-width:100%;display:block;border-radius:8px;background:var(--stage);image-rendering:auto}
+.ramp{height:8px;border-radius:4px;margin-top:8px;background:linear-gradient(90deg,#0B1F3A,#1C6E8C,#4FB3A1,#E7C45A,#E0634F)}
+.rampl{display:flex;justify-content:space-between;font:12px var(--mono);color:var(--muted);margin-top:3px}
+.controls{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center}
+.ctl{font:500 13px var(--body);background:var(--soft);color:var(--ink);border:1px solid var(--line);
+  border-radius:6px;padding:5px 10px;cursor:pointer}
+.ctl[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.score{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:12px;font:13px var(--mono);color:var(--muted)}
+.score b{font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums}
+.score .pill{font:600 11.5px var(--mono);letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:999px;
+  background:var(--soft);color:var(--good)}
+.how{margin-top:28px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:12px}
+.step{background:var(--panel);padding:12px 14px}
+.step .n{font:500 12px var(--mono);color:var(--muted)}
+.step h3{font-size:16px;margin:2px 0 4px}
+.step p{margin:0;font-size:13.5px;color:var(--muted)}
+footer{margin-top:24px;font-size:12.5px;color:var(--muted);max-width:90ch}
+button:focus-visible,.pick:focus-within,.chip:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <h1>StereoNet, from scratch</h1>
+  <p class="thesis">Two photographs taken a few centimetres apart go in; a 3D scene you can turn in your hands comes out. The network, its backpropagation and its training were written in plain Python with zero imports. This page runs the trained weights in your browser.</p>
+  <div class="facts">
+    <span><b>0</b> imports in the model</span>
+    <span><b>__PARAMS__</b> learned parameters</span>
+    <span><b>53</b> tests, every gradient checked</span>
+    <span><b>__TESTEPE__ px</b> error on real photos it never saw (2.29 with the network alone)</span>
+    <span>browser port verified to <b>__VERIFY__ px</b>; refinement bit-identical</span>
+  </div>
+
+  <div class="lab">
+    <section class="panel" aria-labelledby="h-in">
+      <h2 id="h-in">Stereo pair</h2>
+      <div class="samples" role="group" aria-label="Example pairs">__CHIPS__</div>
+      <div class="pair">
+        <div class="slot l"><span class="tag">LEFT</span><canvas id="cL" width="4" height="3" aria-label="Left image"></canvas>
+          <label class="pick">Choose left image<input id="fL" type="file" accept="image/*"></label></div>
+        <div class="slot r"><span class="tag">RIGHT</span><canvas id="cR" width="4" height="3" aria-label="Right image"></canvas>
+          <label class="pick">Choose right image<input id="fR" type="file" accept="image/*"></label></div>
+      </div>
+      <button class="go" id="go">Reconstruct in this browser</button>
+      <div id="log" aria-live="polite"></div>
+      <p class="note">The pair must be <b>rectified</b>: every point sits on the same row in both images. Benchmark pairs are; two handheld phone shots usually are not. Your images never leave this page.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="h-out">
+      <h2 id="h-out" hidden>Result</h2>
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" id="t3d" aria-selected="true">3D scene</button>
+        <button class="tab" role="tab" id="tdisp" aria-selected="false">Depth map</button>
+        <button class="tab" role="tab" id="tgt" aria-selected="false">Ground truth</button>
+      </div>
+      <div class="view" id="v3d">
+        <canvas id="stage" aria-label="Reconstructed scene. It opens from the camera's viewpoint; drag to turn it, scroll or pinch to zoom."></canvas>
+        <div class="controls">
+          <button class="ctl" data-mode="tex" aria-pressed="true">Photo</button>
+          <button class="ctl" data-mode="shade" aria-pressed="false">Shaded</button>
+          <button class="ctl" data-mode="wire" aria-pressed="false">Mesh</button>
+          <button class="ctl" data-mode="pts" aria-pressed="false">Points</button>
+          <button class="ctl" data-mode="depth" aria-pressed="false">Depth</button>
+          <button class="ctl" id="spin" aria-pressed="false">Turntable</button>
+          <button class="ctl" id="reset">Camera view</button>
+        </div>
+        <div class="controls" role="group" aria-label="Depth source">
+          <button class="ctl" data-src="ref" aria-pressed="true">Refined</button>
+          <button class="ctl" data-src="net" aria-pressed="false">Network only</button>
+          <button class="ctl" id="fill" aria-pressed="true" title="Continue the background behind foreground edges. This is filled in, not measured.">Fill hidden background</button>
+        </div>
+      </div>
+      <div class="view" id="vdisp" hidden>
+        <canvas id="cD" class="flat" aria-label="Estimated disparity map"></canvas>
+        <div class="ramp"></div><div class="rampl"><span id="dlo">far</span><span id="dhi">near</span></div>
+      </div>
+      <div class="view" id="vgt" hidden>
+        <canvas id="cG" class="flat" aria-label="Ground-truth disparity"></canvas>
+        <div class="ramp"></div><div class="rampl"><span>far</span><span>near · black = unknown</span></div>
+      </div>
+      <div class="score" id="score"></div>
+    </section>
+  </div>
+
+  <section class="how" aria-labelledby="h-how">
+    <h2 id="h-how">What runs when you press the button</h2>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><h3>Scale</h3><p>A quick pass guesses how far objects shift between the eyes, then corrects itself, so the pair runs at a size the network can search.</p></div>
+      <div class="step"><div class="n">2</div><h3>Match</h3><p>Shared-weight features from both images are compared at __DMAX__ candidate shifts. A good match costs nearly nothing.</p></div>
+      <div class="step"><div class="n">3</div><h3>Decide</h3><p>3D convolutions clean the costs; a soft-argmin turns them into sub-pixel disparity.</p></div>
+      <div class="step"><div class="n">4</div><h3>Sharpen</h3><p>Two refinement stages, guided by the photo itself, restore edges the coarse match blurred.</p></div>
+      <div class="step"><div class="n">5</div><h3>Refine</h3><p>At full resolution, only the 21 disparities around the network's answer are re-checked, with census matching and semi-global smoothing in 8 directions. Both views must agree. Flat colour segments are snapped to planes.</p></div>
+      <div class="step"><div class="n">6</div><h3>Build</h3><p>Depth = focal length × baseline ÷ disparity. A mesh with a vertex every second pixel carries the photograph as its texture, and opens from the left camera's own viewpoint. Behind foreground edges, a darker layer continues the background the cameras could not see.</p></div>
+    </div>
+  </section>
+
+  <footer>Example pairs from the Middlebury stereo datasets (Scharstein &amp; Szeliski, 2003; Scharstein &amp; Pal, 2007), used with their ground truth to score each result on this page. None of them was used in training. Without calibration, geometry is correct up to an overall scale. For honesty: a classical census + SGM matcher on its own, when told each scene's true depth range, scores 0.80 px on the same eight test scenes, better per pixel than this pipeline. Here the network finds that range by itself and keeps far, flat and hidden areas sane, which gives lower surface-normal and point-cloud (Chamfer) error.</footer>
+</div>
+
+<script>__INFER_JS__</script>
+<script>__REFINE_JS__</script>
+<script>__RECON_JS__</script>
+<script>
+const CKPT = __WEIGHTS__;
+const SAMPLES = __SAMPLES__;
+const TARGET_PEAK = __TARGET_PEAK__;
+const NET = StereoNetInfer.buildNet(CKPT);
+const $ = (id) => document.getElementById(id);
+const logEl = $('log');
+const log = (m) => { logEl.textContent += (logEl.textContent ? '\n' : '') + m; logEl.scrollTop = logEl.scrollHeight; };
+const clearLog = () => { logEl.textContent = ''; };
+const tick = () => new Promise(r => setTimeout(r, 20));
+
+let S = {};       // current pair
+const UI = { src: 'ref', fill: true };
+
+function imgFromSrc(src) {
+  return new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; });
+}
+function readPixels(im, maxW) {
+  let W = im.naturalWidth, H = im.naturalHeight;
+  if (maxW && W > maxW) { H = Math.round(H * maxW / W); W = maxW; }
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d'); x.drawImage(im, 0, 0, W, H);
+  const d = x.getImageData(0, 0, W, H).data, gray = new Float64Array(W * H), rgb = new Float64Array(3 * W * H);
+  for (let i = 0; i < W * H; i++) {
+    const r = d[4 * i] / 255, g = d[4 * i + 1] / 255, b = d[4 * i + 2] / 255;
+    rgb[3 * i] = r; rgb[3 * i + 1] = g; rgb[3 * i + 2] = b; gray[i] = 0.299 * r + 0.587 * g + 0.114 * b;
+  }
+  return { W, H, gray, rgb, im, canvas: c };
+}
+function drawThumb(canvas, im) {
+  canvas.width = im.naturalWidth; canvas.height = im.naturalHeight;
+  canvas.getContext('2d').drawImage(im, 0, 0);
+}
+function b64ToU16(b64) {
+  const s = atob(b64), n = s.length >> 1, out = new Float64Array(n);
+  for (let i = 0; i < n; i++) out[i] = ((s.charCodeAt(2 * i) << 8) | s.charCodeAt(2 * i + 1)) / 64;
+  return out;
+}
+
+// colour ramp: far = deep blue, near = warm red
+const STOPS = [[11,31,58],[28,110,140],[79,179,161],[231,196,90],[224,99,79]];
+function ramp(t) {
+  t = Math.max(0, Math.min(1, t)) * 4; const i = Math.min(3, Math.floor(t)), f = t - i, a = STOPS[i], b = STOPS[i + 1];
+  return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f];
+}
+function paintDisp(canvas, disp, W, H, lo, hi, unknown) {
+  canvas.width = W; canvas.height = H;
+  const x = canvas.getContext('2d'), img = x.createImageData(W, H);
+  for (let i = 0; i < W * H; i++) {
+    const c = unknown && unknown[i] ? [0, 0, 0] : ramp((disp[i] - lo) / (hi - lo || 1));
+    img.data[4 * i] = c[0]; img.data[4 * i + 1] = c[1]; img.data[4 * i + 2] = c[2]; img.data[4 * i + 3] = 255;
+  }
+  x.putImageData(img, 0, 0);
+}
+
+// ---- scoring against Middlebury ground truth (visible pixels only) ----
+function score(pred, gtL, gtR, W) {
+  let n = 0, e = 0, b2 = 0, b4 = 0;
+  const H = gtL.length / W;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = y * W + x, g = gtL[i]; if (!(g > 0)) continue;
+    const xr = Math.round(x - g); if (xr < 0 || xr >= W) continue;
+    const gr = gtR[y * W + xr]; if (!(gr > 0) || Math.abs(g - gr) > 1) continue;
+    const d = Math.abs(pred[i] - g); e += d; n++; if (d > 2) b2++; if (d > 4) b4++;
+  }
+  return n ? { epe: e / n, b2: 100 * b2 / n, b4: 100 * b4 / n, n } : null;
+}
+
+// ---- stage: orbitable mesh on a 2D canvas, painter's algorithm ----
+// ---- stage: WebGL, photo mapped onto a dense depth grid ----
+// The scene opens from the viewpoint of the left camera, with the same
+// focal length the depth was unprojected with, so the first frame is the
+// photograph itself; dragging then turns the surface around its median depth.
+const HOME = { yaw: 0.5, pitch: -0.24, k: 2.25 };      // canvas fallback only
+const V3 = { verts: null, cols: null, faces: null, yaw: 0, pitch: 0, dist: 1, rad: 1, mode: 'tex', spin: false, c: [0, 0, 0], main: 0 };
+const stage = $('stage');
+const GL = (() => {
+  let gl = null;
+  try { gl = stage.getContext('webgl2', { antialias: true }); } catch (e) { gl = null; }
+  if (!gl) return null;
+  const vs = `#version 300 es
+in vec3 aPos; in vec2 aUV; in float aFill; in float aDisp;
+uniform mat3 uR; uniform vec3 uPivot; uniform float uDist; uniform vec2 uS; uniform vec2 uNF; uniform float uPt;
+out vec2 vUV; out float vFill; out float vD; out vec3 vQ;
+void main() {
+  vec3 q = uR * (aPos - uPivot) + vec3(0.0, 0.0, uDist);
+  vQ = q; vUV = aUV; vFill = aFill; vD = aDisp;
+  float n = uNF.x, f = uNF.y;
+  gl_Position = vec4(uS.x * q.x, -uS.y * q.y, (q.z * (f + n) - 2.0 * f * n) / (f - n), q.z);
+  gl_PointSize = uPt;
+}`;
+  const fs = `#version 300 es
+precision highp float;
+in vec2 vUV; in float vFill; in float vD; in vec3 vQ;
+uniform sampler2D uTex; uniform int uMode; uniform vec2 uDR;
+out vec4 o;
+vec3 ramp(float t) {
+  t = clamp(t, 0.0, 1.0) * 4.0;
+  vec3 s0 = vec3(11., 31., 58.), s1 = vec3(28., 110., 140.), s2 = vec3(79., 179., 161.), s3 = vec3(231., 196., 90.), s4 = vec3(224., 99., 79.);
+  vec3 c = t < 1.0 ? mix(s0, s1, t) : t < 2.0 ? mix(s1, s2, t - 1.0) : t < 3.0 ? mix(s2, s3, t - 2.0) : mix(s3, s4, t - 3.0);
+  return c / 255.0;
+}
+void main() {
+  float dim = vFill > 0.5 ? 0.78 : 1.0;
+  vec3 c;
+  if (uMode == 1) {
+    vec3 nrm = normalize(cross(dFdx(vQ), dFdy(vQ)));
+    float k = 0.22 + 0.78 * abs(dot(nrm, normalize(-vQ)));
+    c = vec3(0.80, 0.82, 0.86) * k;
+  } else if (uMode == 2) {
+    c = vec3(0.24, 0.71, 0.77); dim = 1.0;
+  } else if (uMode == 4) {
+    c = ramp((vD - uDR.x) / max(uDR.y - uDR.x, 1e-6));
+  } else {
+    c = texture(uTex, vUV).rgb;
+  }
+  o = vec4(c * dim, 1.0);
+}`;
+  const sh = (type, src) => { const x = gl.createShader(type); gl.shaderSource(x, src); gl.compileShader(x);
+    if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(x)); return x; };
+  let prog;
+  try {
+    prog = gl.createProgram(); gl.attachShader(prog, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+  } catch (e) { console.warn('WebGL unavailable: ' + e.message); return null; }
+  const U = n => gl.getUniformLocation(prog, n), A = n => gl.getAttribLocation(prog, n);
+  const u = { R: U('uR'), P: U('uPivot'), D: U('uDist'), S: U('uS'), NF: U('uNF'), Pt: U('uPt'), Tex: U('uTex'), Mode: U('uMode'), DR: U('uDR') };
+  const vao = gl.createVertexArray(), buf = {}, tex = gl.createTexture();
+  let scene = null;
+  function attr(name, data, size) {
+    if (!buf[name]) buf[name] = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf[name]); gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+    const loc = A(name); if (loc < 0) return; gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, size, gl.FLOAT, false, 0, 0);
+  }
+  function set(m, image) {
+    gl.bindVertexArray(vao);
+    attr('aPos', m.pos, 3); attr('aUV', m.uv, 2); attr('aFill', m.fill, 1); attr('aDisp', m.disp, 1);
+    if (!buf.idx) buf.idx = gl.createBuffer(); if (!buf.lines) buf.lines = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buf.idx); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, m.idx, gl.STATIC_DRAW);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    scene = { m, nIdx: m.idx.length, nLines: m.lines.length, nVerts: m.verts };
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buf.lines); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, m.lines, gl.STATIC_DRAW);
+  }
+  function render() {
+    const r = stage.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+    const Wc = Math.max(1, Math.round(r.width * dpr)), Hc = Math.max(1, Math.round(r.height * dpr));
+    if (stage.width !== Wc || stage.height !== Hc) { stage.width = Wc; stage.height = Hc; }
+    gl.viewport(0, 0, Wc, Hc);
+    const bg = (getComputedStyle(document.documentElement).getPropertyValue('--stage').trim() || '#0B0E12');
+    const hex = bg.replace('#', ''); const n = parseInt(hex.length === 3 ? hex.split('').map(c => c + c).join('') : hex, 16);
+    gl.clearColor(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    if (!scene) return;
+    const m = scene.m, F = m.fx * Math.min(Wc / m.W, Hc / m.H);
+    const cy = Math.cos(V3.yaw), sy = Math.sin(V3.yaw), cp = Math.cos(V3.pitch), sp = Math.sin(V3.pitch);
+    // R = Rx(pitch) * Ry(yaw), column-major for GLSL
+    const R = [cy, sp * sy, -cp * sy,  0, cp, sp,  sy, -sp * cy, cp * cy];
+    gl.useProgram(prog); gl.bindVertexArray(vao); gl.enable(gl.DEPTH_TEST);
+    gl.uniformMatrix3fv(u.R, false, R); gl.uniform3f(u.P, 0, 0, m.pivotZ); gl.uniform1f(u.D, V3.dist);
+    gl.uniform2f(u.S, 2 * F / Wc, 2 * F / Hc); gl.uniform2f(u.NF, m.pivotZ * 0.01, m.pivotZ * 100);
+    gl.uniform1f(u.Pt, 2.0 * dpr); gl.uniform2f(u.DR, m.dlo, m.dhi);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex); gl.uniform1i(u.Tex, 0);
+    const mode = { tex: 0, shade: 1, wire: 2, pts: 3, depth: 4 }[V3.mode] || 0;
+    gl.uniform1i(u.Mode, mode);
+    if (mode === 2) { gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buf.lines); gl.drawElements(gl.LINES, scene.nLines, gl.UNSIGNED_INT, 0); }
+    else if (mode === 3) { gl.drawArrays(gl.POINTS, 0, scene.nVerts); }
+    else { gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buf.idx); gl.drawElements(gl.TRIANGLES, scene.nIdx, gl.UNSIGNED_INT, 0); }
+  }
+  return { set, render, pivot: () => scene ? scene.m.pivotZ : 1 };
+})();
+const sx = GL ? null : stage.getContext('2d');
+function setScene(m, image, keepView) {
+  GL.set(m, image);
+  V3.rad = m.pivotZ;
+  if (!keepView) { V3.yaw = 0; V3.pitch = 0; V3.dist = m.pivotZ; }
+  draw();
+}
+function setMesh2d(m, keepView) {
+  V3.verts = m.verts; V3.cols = m.cols; V3.faces = m.faces; V3.main = m.mainFaces;
+  const n = m.verts.length / 3; let cx = 0, cy = 0, cz = 0;
+  for (let i = 0; i < n; i++) { cx += m.verts[3 * i]; cy += m.verts[3 * i + 1]; cz += m.verts[3 * i + 2]; }
+  V3.c = [cx / n, cy / n, cz / n];
+  const ds = []; for (let i = 0; i < n; i++) ds.push(Math.hypot(m.verts[3 * i] - V3.c[0], m.verts[3 * i + 1] - V3.c[1], m.verts[3 * i + 2] - V3.c[2]));
+  ds.sort((a, b) => a - b); V3.rad = ds[Math.floor(ds.length * 0.92)] || 1;
+  if (!keepView) { V3.yaw = HOME.yaw; V3.pitch = HOME.pitch; V3.dist = V3.rad * HOME.k; }
+  draw2d();
+}
+function resizeStage() {
+  if (GL) { draw(); return; }
+  const r = stage.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  stage.width = Math.max(1, Math.round(r.width * dpr)); stage.height = Math.max(1, Math.round(r.height * dpr));
+  sx.setTransform(dpr, 0, 0, dpr, 0, 0); draw();
+}
+function draw() { if (GL) GL.render(); else draw2d(); }
+function homeView() {
+  if (GL) { V3.yaw = 0; V3.pitch = 0; V3.dist = GL.pivot(); }
+  else { V3.yaw = HOME.yaw; V3.pitch = HOME.pitch; V3.dist = V3.rad * HOME.k; }
+}
+function draw2d() {
+  const r = stage.getBoundingClientRect(), w = r.width, h = r.height;
+  sx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--stage').trim() || '#0B0E12';
+  sx.fillRect(0, 0, w, h);
+  if (!V3.verts) return;
+  const V = V3.verts, C = V3.cols, F = V3.faces, n = V.length / 3, nf = F.length / 3;
+  const cy = Math.cos(V3.yaw), sy = Math.sin(V3.yaw), cp = Math.cos(V3.pitch), sp = Math.sin(V3.pitch);
+  const f = (Math.min(w, h) * 0.5) / Math.tan(0.5), px = new Float32Array(n), py = new Float32Array(n), pz = new Float32Array(n);
+  const vx = new Float32Array(n), vy = new Float32Array(n), vz = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const X = V[3 * i] - V3.c[0], Y = -(V[3 * i + 1] - V3.c[1]), Z = V[3 * i + 2] - V3.c[2];
+    const x1 = X * cy + Z * sy, z1 = -X * sy + Z * cy, y2 = Y * cp - z1 * sp, z2 = Y * sp + z1 * cp + V3.dist;
+    vx[i] = x1; vy[i] = y2; vz[i] = z2; const zz = Math.max(z2, 1e-4);
+    px[i] = w / 2 + f * x1 / zz; py[i] = h / 2 - f * y2 / zz; pz[i] = zz;
+  }
+  if (V3.mode === 'pts') {
+    for (let i = 0; i < n; i++) {
+      sx.fillStyle = `rgb(${C[3 * i]},${C[3 * i + 1]},${C[3 * i + 2]})`;
+      const s = Math.max(1.2, 2.4 * V3.rad / pz[i] * f / 260); sx.fillRect(px[i] - s / 2, py[i] - s / 2, s, s);
+    }
+    return;
+  }
+  const order = new Array(nf), dep = new Float32Array(nf);
+  for (let t = 0; t < nf; t++) { dep[t] = pz[F[3 * t]] + pz[F[3 * t + 1]] + pz[F[3 * t + 2]]; order[t] = t; }
+  order.sort((a, b) => dep[b] - dep[a]);
+  for (const t of order) {
+    const a = F[3 * t], b = F[3 * t + 1], c = F[3 * t + 2];
+    sx.beginPath(); sx.moveTo(px[a], py[a]); sx.lineTo(px[b], py[b]); sx.lineTo(px[c], py[c]); sx.closePath();
+    if (V3.mode === 'wire') { sx.strokeStyle = 'rgba(61,180,196,.55)'; sx.lineWidth = 0.6; sx.stroke(); continue; }
+    let R = (C[3 * a] + C[3 * b] + C[3 * c]) / 3, G = (C[3 * a + 1] + C[3 * b + 1] + C[3 * c + 1]) / 3, B = (C[3 * a + 2] + C[3 * b + 2] + C[3 * c + 2]) / 3;
+    if (t >= V3.main) { R *= 0.8; G *= 0.8; B *= 0.8; }   // filled-in background, drawn slightly darker
+    if (V3.mode === 'shade') {
+      const ux = vx[b] - vx[a], uy = vy[b] - vy[a], uz = vz[b] - vz[a], wx = vx[c] - vx[a], wy = vy[c] - vy[a], wz = vz[c] - vz[a];
+      const nx = uy * wz - uz * wy, ny = uz * wx - ux * wz, nz = ux * wy - uy * wx, l = Math.abs(nz) / (Math.hypot(nx, ny, nz) || 1);
+      const k = 0.3 + 0.7 * l; R = 200 * k; G = 205 * k; B = 212 * k;
+    }
+    sx.fillStyle = `rgb(${R | 0},${G | 0},${B | 0})`; sx.fill(); sx.strokeStyle = sx.fillStyle; sx.lineWidth = 0.6; sx.stroke();
+  }
+}
+let drag = null;
+const pts = new Map();
+const clampDist = v => Math.max(V3.rad * (GL ? 0.25 : 0.7), Math.min(V3.rad * (GL ? 4 : 10), v));
+stage.addEventListener('pointerdown', e => { stage.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); drag = [e.clientX, e.clientY]; });
+stage.addEventListener('pointerup', e => { pts.delete(e.pointerId); if (!pts.size) drag = null; });
+stage.addEventListener('pointercancel', e => { pts.delete(e.pointerId); drag = null; });
+stage.addEventListener('pointermove', e => {
+  if (!pts.has(e.pointerId)) return;
+  if (pts.size === 2) {
+    const [a, b] = [...pts.values()], d0 = Math.hypot(a[0] - b[0], a[1] - b[1]);
+    pts.set(e.pointerId, [e.clientX, e.clientY]);
+    const [c, d] = [...pts.values()], d1 = Math.hypot(c[0] - d[0], c[1] - d[1]);
+    if (d0 > 0) V3.dist = clampDist(V3.dist * d0 / d1); draw(); return;
+  }
+  pts.set(e.pointerId, [e.clientX, e.clientY]);
+  if (!drag) return;
+  const k = GL ? 0.005 : 0.008;
+  V3.yaw += (e.clientX - drag[0]) * k; V3.pitch = Math.max(-1.3, Math.min(1.3, V3.pitch + (e.clientY - drag[1]) * k));
+  drag = [e.clientX, e.clientY]; draw();
+});
+stage.addEventListener('wheel', e => { e.preventDefault(); V3.dist = clampDist(V3.dist * Math.exp(e.deltaY * 0.0012)); draw(); }, { passive: false });
+document.querySelectorAll('.ctl[data-mode]').forEach(b => b.addEventListener('click', () => {
+  V3.mode = b.dataset.mode; document.querySelectorAll('.ctl[data-mode]').forEach(o => o.setAttribute('aria-pressed', o === b)); draw();
+}));
+$('reset').addEventListener('click', () => { homeView(); draw(); });
+$('spin').addEventListener('click', () => {
+  V3.spin = !V3.spin; $('spin').setAttribute('aria-pressed', V3.spin);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const y0 = GL ? 0 : HOME.yaw * 0.3, amp = GL ? 0.35 : 0.6;
+  const loop = () => { if (!V3.spin) return; V3.yaw = y0 + Math.sin(performance.now() / 2400) * amp; draw(); requestAnimationFrame(loop); };
+  if (V3.spin && !reduce) loop();
+});
+new ResizeObserver(resizeStage).observe(stage);
+
+function tab(which) {
+  for (const [t, v] of [['t3d', 'v3d'], ['tdisp', 'vdisp'], ['tgt', 'vgt']]) {
+    $(t).setAttribute('aria-selected', t === which); $(v).hidden = t !== which;
+  }
+  if (which === 't3d') resizeStage();
+}
+$('t3d').onclick = () => tab('t3d'); $('tdisp').onclick = () => tab('tdisp'); $('tgt').onclick = () => tab('tgt');
+
+// ---- turn a disparity map into everything on screen ----
+async function present(raw, ref, source) {
+  S.raw = raw; S.ref = ref; S.source = source;
+  await show(false);
+}
+async function show(keepView) {
+  const { W, H } = S.L;
+  const useRef = UI.src === 'ref' && S.ref, disp = useRef ? S.ref : S.raw;
+  let lo = Infinity, hi = -Infinity; for (const v of disp) { if (v < lo) lo = v; if (v > hi) hi = v; }
+  if (S.gt) { lo = Infinity; hi = -Infinity; for (const v of S.gt) if (v > 0) { if (v < lo) lo = v; if (v > hi) hi = v; } }
+  paintDisp($('cD'), disp, W, H, lo, hi);
+  $('dlo').textContent = 'far · ' + lo.toFixed(0) + ' px'; $('dhi').textContent = hi.toFixed(0) + ' px · near';
+  const Wd = Math.min(W, 480), s = Wd / W, Hd = Math.round(H * s);
+  let dd = disp, gray = S.L.gray, rgb = S.L.rgb, texCanvas = S.L.canvas;
+  if (Wd < W) {
+    dd = StereoNetInfer.bilinear(disp, 1, H, W, Hd, Wd); for (let i = 0; i < dd.length; i++) dd[i] *= s;
+    const small = readPixels(S.L.im, Wd); gray = small.gray; rgb = small.rgb; texCanvas = small.canvas;
+  }
+  log('building mesh at ' + Wd + '\u00d7' + Hd + ' from the ' + (useRef ? 'refined' : 'network-only') + ' depth \u2026'); await tick();
+  const t = performance.now();
+  let m;
+  if (GL) {
+    m = Recon.buildGridMesh(dd, Wd, Hd, { fill: UI.fill });
+    m.mainFaces = m.mainTris; m.faces = { length: 3 * (m.mainTris + m.fillTris) };
+    log('dense mesh: ' + m.verts.toLocaleString() + ' vertices, ' + m.mainTris.toLocaleString() + ' triangles with the photo mapped on' +
+        (m.fillTris ? ', ' + m.fillTris.toLocaleString() + ' filling hidden background' : ''));
+    setScene(m, texCanvas, keepView);
+  } else {
+    m = Recon.buildMesh(dd, gray, rgb, Wd, Hd, log, { refined: !!useRef, fill: UI.fill });
+    setMesh2d(m, keepView);
+  }
+  log('mesh built in ' + ((performance.now() - t) / 1000).toFixed(1) + ' s');
+  const el = $('score'); el.innerHTML = '';
+  const add = (html) => { const sp = document.createElement('span'); sp.innerHTML = html; el.appendChild(sp); };
+  add(`<span class="pill">${S.source}</span>`);
+  if (S.gt) {
+    const r = score(disp, S.gt, S.gtR, W);
+    if (S.ref) {
+      const a = score(S.raw, S.gt, S.gtR, W), b = score(S.ref, S.gt, S.gtR, W);
+      add(`network only <b>${a.epe.toFixed(2)} px</b> &rarr; refined <b>${b.epe.toFixed(2)} px</b>`);
+    } else add(`error <b>${r.epe.toFixed(2)} px</b>`);
+    add(`showing ${useRef ? 'refined' : 'network only'}: off by &gt;2 px <b>${r.b2.toFixed(1)}%</b>, &gt;4 px <b>${r.b4.toFixed(1)}%</b>`);
+    add(`scored on <b>${r.n.toLocaleString()}</b> visible pixels vs Middlebury ground truth`);
+  } else add('no ground truth for these images, so no score');
+  add(`<b>${m.mainFaces}</b> triangles` + (m.faces.length / 3 > m.mainFaces ? ` + <b>${m.faces.length / 3 - m.mainFaces}</b> filled in` : ''));
+}
+document.querySelectorAll('.ctl[data-src]').forEach(b => b.addEventListener('click', () => {
+  UI.src = b.dataset.src; document.querySelectorAll('.ctl[data-src]').forEach(o => o.setAttribute('aria-pressed', o === b));
+  if (S.raw) show(true);
+}));
+$('fill').addEventListener('click', () => { UI.fill = !UI.fill; $('fill').setAttribute('aria-pressed', UI.fill); if (S.raw) show(true); });
+
+async function loadSample(key) {
+  const sm = SAMPLES[key];
+  document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.k === key));
+  clearLog(); log('loading ' + sm.label + ' \u2026');
+  const [iL, iR, gL, gR] = await Promise.all([sm.left, sm.right, sm.gtl, sm.gtr].map(imgFromSrc));
+  S = { L: readPixels(iL), R: readPixels(iR), key };
+  drawThumb($('cL'), iL); drawThumb($('cR'), iR);
+  const gl = readPixels(gL), gr = readPixels(gR);
+  S.gt = gl.gray.map(v => v * 255 / sm.scale); S.gtR = gr.gray.map(v => v * 255 / sm.scale);
+  let lo = Infinity, hi = -Infinity; for (const v of S.gt) if (v > 0) { if (v < lo) lo = v; if (v > hi) hi = v; }
+  paintDisp($('cG'), S.gt, gl.W, gl.H, lo, hi, S.gt.map(v => !(v > 0)));
+  $('tgt').hidden = false;
+  log(sm.label + ': showing the result this network produced for it. Press the button to recompute it live.');
+  await present(b64ToU16(sm.raw), b64ToU16(sm.ref), 'precomputed by this page\u2019s code');
+}
+
+async function run() {
+  if (!S.L || !S.R) { log('Choose a left and a right image first.'); return; }
+  if (S.L.W !== S.R.W || S.L.H !== S.R.H) { log('The two images are different sizes (' + S.L.W + '\u00d7' + S.L.H + ' and ' + S.R.W + '\u00d7' + S.R.H + '). Use a matched pair.'); return; }
+  const go = $('go'); go.disabled = true; go.textContent = 'Working\u2026';
+  clearLog(); log('input ' + S.L.W + '\u00d7' + S.L.H); await tick();
+  try {
+    const t = performance.now();
+    const r = StereoNetInfer.predictAuto(NET, S.L.gray, S.R.gray, S.L.W, S.L.H, { targetPeak: TARGET_PEAK, log });
+    log('network: ' + ((performance.now() - t) / 1000).toFixed(1) + ' s (ran at ' + r.Ww + '\u00d7' + r.Hw + ')');
+    await tick();
+    const t2 = performance.now();
+    const ref = Refine.refineDisparity(S.L.gray, S.R.gray, S.L.rgb, r.disp, S.L.W, S.L.H, log);
+    log('refinement: ' + ((performance.now() - t2) / 1000).toFixed(1) + ' s at ' + S.L.W + '\u00d7' + S.L.H);
+    await tick();
+    await present(r.disp, ref.disp, 'computed live in this browser');
+  } catch (e) { log('Something went wrong: ' + e.message); }
+  go.disabled = false; go.textContent = 'Reconstruct in this browser';
+}
+$('go').onclick = run;
+
+async function takeFile(input, side) {
+  const f = input.files && input.files[0]; if (!f) return;
+  const url = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(f); });
+  const im = await imgFromSrc(url);
+  const px = readPixels(im, 640);
+  if (px.W < im.naturalWidth) log(side + ' image scaled to ' + px.W + ' px wide for speed');
+  if (!S.key || S.key !== 'custom') { S = { key: 'custom' }; $('tgt').hidden = true; if ($('tgt').getAttribute('aria-selected') === 'true') tab('t3d'); }
+  S[side] = px; S[side].im = im;
+  const c = side === 'L' ? $('cL') : $('cR'); c.width = px.W; c.height = px.H; c.getContext('2d').drawImage(im, 0, 0, px.W, px.H);
+  document.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', 'false'));
+  log(side === 'L' ? 'left image loaded' : 'right image loaded');
+  if (S.L && S.R) log('ready: press the button');
+}
+$('fL').onchange = () => takeFile($('fL'), 'L');
+$('fR').onchange = () => takeFile($('fR'), 'R');
+document.querySelectorAll('.chip').forEach(c => c.onclick = () => loadSample(c.dataset.k));
+loadSample(Object.keys(SAMPLES)[0]);
+</script>
