@@ -1,5 +1,7 @@
 # Stereo from scratch
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23449075.svg)](https://doi.org/10.5281/zenodo.23449075)
+
 A stereo-to-3D pipeline written in plain Python with **no import statements**. The repository covers everything from a rectified stereo pair to a textured 3D mesh and Gaussian primitives: PNG decoding, a StereoNet-style network with hand-written backpropagation, full-resolution semi-global matching, Delaunay triangulation, and closed-form Gaussians.
 
 This is the code for the manuscript *From-scratch stereo vision for 3D scene reconstruction with Delaunay triangulation and closed-form Gaussian primitives* (Hameed et al., under review).
@@ -79,7 +81,7 @@ The Middlebury stereo datasets are by D. Scharstein, R. Szeliski, C. Pal, H. Hir
 
 ## Citing
 
-See `CITATION.cff`. A DOI for this code is minted through Zenodo for each GitHub release.
+See `CITATION.cff`. The release used in the paper (v1.0.0) is archived on Zenodo: https://doi.org/10.5281/zenodo.23449075
 
 ## License
 
