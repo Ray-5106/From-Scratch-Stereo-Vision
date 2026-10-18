@@ -2,6 +2,7 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 title: "Stereo from scratch: a zero-import stereo-to-3D pipeline"
 version: 1.0.0
+doi: 10.5281/zenodo.23449075
 date-released: 2026-10-17
 license: MIT
 repository-code: "https://github.com/Ray-5106/From-Scratch-Stereo-Vision"
